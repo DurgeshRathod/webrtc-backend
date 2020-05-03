@@ -11,40 +11,33 @@ const io = socket(server)
 io.sockets.on('connection', (socket) => {
 
     console.log("connected");
-    socket.send("abcdef");
     
     socket.on('message', (message: string) => {
         //log the received message and send it back to the client
         console.log('received: %s', message);
         socket.send(`Hello, you sent -> ${message}`);
+        socket.emit("msg",`Hello, you sent -> ${message}`);
     });
 
 
     socket.on('JOIN_ROOM', function(room) {
-        if(socket.rooms.room){
-            socket.leave(socket.rooms.room);
-        }
-    
+        console.log("join room: "  + room);
         socket.join(room);
     });
 
     socket.on("LEAVE_ROOM",(room)=>{
+        console.log("leaving the room" + room);
         socket.leave(room)
-        
     })
-    socket.send("CONNECTED")
-    // now, it's easy to send a message to just the clients in a given room
     
-    socket.on("message",(data)=>{
-        // socket.in(room).emit('message', 'what is going on, party people?');
-        sendDataInRoom(socket.rooms[Object.keys(socket.rooms)[0]] , data)
+    socket.on("SEND_MESSAGE",(data)=>{
+        sendDataInRoom(data.room , data.message)
     })
-    // io.sockets.in(room).emit('message', 'what is going on, party people?');
 
     function sendDataInRoom(room:string, data:any){
-        io.sockets.in(room).emit('event', data);
+        socket.in(room).emit('event', data);
     }
-});
+});``
 
 //start our server
 
