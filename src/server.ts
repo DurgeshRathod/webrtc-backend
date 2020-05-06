@@ -37,10 +37,35 @@ io.sockets.on('connection', (socket) => {
     function sendDataInRoom(room:string, data:any){
         socket.in(room).emit('event', data);
     }
-});``
+    
+    //
+    socket.on("NewClient", (room)=> {
+            socket.in(room).emit('CreatePeer')          
+    })
+    socket.on('Offer', function(socketData) {
+        let room = socketData.room;
+        let offer = socketData.offer
+        socket.in(room).broadcast.emit("BackOffer", offer)
+    })
+
+    
+    socket.on('Answer',  function(socketData) {
+        let room = socketData.room;
+        let data = socketData.data
+        socket.in(room).broadcast.emit("BackAnswer", data)
+    })
+
+    //client disconnect
+    socket.on('disconnect', function(room) {
+        socket.in(room).broadcast.emit("Disconnect")
+    })
+
+});
+
+
+
 
 //start our server
-
 server.listen(process.env.PORT || 8999, () => {
     console.log(`Server started on  - port ${server.address().port} :)`);
 });
