@@ -9,7 +9,7 @@ const server:any = http.createServer(app);
 
 const io = socket(server)
 io.sockets.on('connection', (socket) => {
-
+    let token = socket.handshake.query.token;
     console.log("connected");
     
     socket.on('message', (message: string) => {
@@ -40,16 +40,20 @@ io.sockets.on('connection', (socket) => {
     
     //
     socket.on("NewClient", (room)=> {
-            socket.in(room).emit('CreatePeer')          
+        console.log("NewClient")
+            socket.in(room).emit('CreatePeer');
+            // socket.in(room).broadcast.emit("CreatePeer")          
     })
     socket.on('Offer', function(socketData) {
+        console.log("Offer");
         let room = socketData.room;
         let offer = socketData.offer
-        socket.in(room).broadcast.emit("BackOffer", offer)
+        socket.in(room).emit("BackOffer", offer)
     })
 
     
     socket.on('Answer',  function(socketData) {
+        console.log("Anwer")
         let room = socketData.room;
         let data = socketData.data
         socket.in(room).broadcast.emit("BackAnswer", data)
@@ -57,13 +61,16 @@ io.sockets.on('connection', (socket) => {
 
     //client disconnect
     socket.on('disconnect', function(room) {
+        console.log("Disconnect")
         socket.in(room).broadcast.emit("Disconnect")
     })
 
 });
 
 
-
+app.get('/', (req, res) => {
+    res.send('<h1>Hey Socket.io</h1>');
+  });
 
 //start our server
 server.listen(process.env.PORT || 8999, () => {
